@@ -4,22 +4,20 @@
 #include <stdint.h>
 
 class DIRECTDRAWSURFACE7 {
- public:
+public:
   void Release();
 };
 
-
-typedef  DIRECTDRAWSURFACE7* LPDIRECTDRAWSURFACE7;
+typedef DIRECTDRAWSURFACE7* LPDIRECTDRAWSURFACE7;
 
 class DIRECTSOUND {
- public:
+public:
 };
 
 typedef DIRECTSOUND* LPDIRECTSOUND;
 
-
 class DIRECTSOUNDBUFFER {
- public:
+public:
 };
 
 typedef DIRECTSOUNDBUFFER* LPDIRECTSOUNDBUFFER;
@@ -31,17 +29,13 @@ class IDirectMusicSegmentState {};
 class IDirectMusicLoader {};
 class IDirectMusicPerformance {};
 
-class BITMAPFILEHEADER { };
+class BITMAPFILEHEADER {};
 class BITMAPINFOHEADER {};
 class WAVEFORMATEX {};
 
-struct PALETTEENTRY {
+struct PALETTEENTRY {};
 
-};
-
-struct LPRECT {
-
-};
+struct LPRECT {};
 
 typedef unsigned char UCHAR;
 
@@ -58,17 +52,17 @@ typedef void* COLORREF;
 typedef void* WIN32_FIND_DATA;
 
 enum Fields {
-   DDSCAPS_VIDEOMEMORY = 0,
-   DSBCAPS_CTRLPAN = 3,
-   DSBCAPS_CTRLFREQUENCY = 4,
-   DSBCAPS_CTRLVOLUME = 5,
+  DDSCAPS_VIDEOMEMORY = 0,
+  DSBCAPS_CTRLPAN = 3,
+  DSBCAPS_CTRLFREQUENCY = 4,
+  DSBCAPS_CTRLVOLUME = 5,
 };
 
 int32_t GetTickCount();
 void Sleep(int32_t);
 
 class POINT {
- public:
+public:
   int32_t x;
   int32_t y;
 };
@@ -76,13 +70,11 @@ class POINT {
 typedef int32_t DWORD;
 typedef uint16_t USHORT;
 
-
-void DDraw_Draw_Surface(SDL_Surface* src,
-                        int x, int y, int w, int h,
+void DDraw_Draw_Surface(SDL_Surface* src, int x, int y, int w, int h,
                         SDL_Surface* dest, int transparent = 1);
 
-void DDraw_DrawSized_Surface(SDL_Surface* src,
-                             int x, int y, int w, int h, int sw, int sh,
-                             SDL_Surface* dest, int transparent = 1);
+void DDraw_DrawSized_Surface(SDL_Surface* src, int x, int y, int w, int h,
+                             int sw, int sh, SDL_Surface* dest,
+                             int transparent = 1);
 
 #endif

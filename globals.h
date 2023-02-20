@@ -15,7 +15,7 @@
 #define XOFFSET 48
 #define YOFFSET 32
 
-#define FREE     1
+#define FREE 1
 #define OCCUPIED 0
 
 #define BURN_THROUGH 1
@@ -31,7 +31,7 @@
 #define CHAT_Y 466
 
 int resetGameState();
-int addSinglePlayer(int num,int type);
+int addSinglePlayer(int num, int type);
 int removePlayer(int num);
 int drawConsole();
 void gotoMenu();

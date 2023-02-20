@@ -11,8 +11,8 @@ int playMenuSelectSound();
 int playPlayerSound(int p);
 int playKickSound();
 int drawSoundSyz();
-int loadDirectory(char *);
+int loadDirectory(char*);
 int initSoundSyz();
 int releaseSoundSyz();
-int sendMessageSoundSyz(int, int,int  );
+int sendMessageSoundSyz(int, int, int);
 #endif

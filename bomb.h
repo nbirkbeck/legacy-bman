@@ -1,14 +1,13 @@
 #include "dxgl.h"
-#include "t3dlib3.h"
 #include "globals.h"
+#include "t3dlib3.h"
 
 #ifndef BOMB_H
 #define BOMB_H
 
-
 #define LEFT_EXP 0
-#define HOR_EXP  1
-#define MID_EXP  2
+#define HOR_EXP 1
+#define MID_EXP 2
 #define RIGHT_EXP 3
 #define BOTTOM_EXP 4
 #define TOP_EXP 5
@@ -22,33 +21,31 @@
 #define BOMB_EXPLODING 3
 #define BOMB_UNUSED 0
 
-
 #define BOMB_SPEED 4
 
-typedef struct  BOMB_TYPE
-{
-	int x,y;
-	unsigned int  frame;
-	int  timer;
-	unsigned char state;
-	unsigned char power;
-	unsigned char moving;
-	unsigned char dir;
-	char depths[4];
-	void * owner;
+typedef struct BOMB_TYPE {
+  int x, y;
+  unsigned int frame;
+  int timer;
+  unsigned char state;
+  unsigned char power;
+  unsigned char moving;
+  unsigned char dir;
+  char depths[4];
+  void* owner;
 
-}Bomb;
+} Bomb;
 
-int initBomb(Bomb * bomb,int x, int y,int state,int power, void * owner);
+int initBomb(Bomb* bomb, int x, int y, int state, int power, void* owner);
 
 int releaseBombTextures();
 int loadBombTextures();
 int loadExplosionTextures();
 
-int drawExplosionTile(int type,int frame,int x, int y);
-int moveBomb(Bomb * bomb);
-int drawBomb(Bomb * bomb);
-int explodeBomb(Bomb * bomb);
-int midExplodeBomb(Bomb * bomb);
-int postExplodeBomb(Bomb * bomb);
+int drawExplosionTile(int type, int frame, int x, int y);
+int moveBomb(Bomb* bomb);
+int drawBomb(Bomb* bomb);
+int explodeBomb(Bomb* bomb);
+int midExplodeBomb(Bomb* bomb);
+int postExplodeBomb(Bomb* bomb);
 #endif

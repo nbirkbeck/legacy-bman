@@ -1,15 +1,15 @@
-#include <SDL2/SDL_surface.h>
-#include "dxgl.h"
-#include "t3dlib3.h"
-#include "globals.h"
 #include "bomb.h"
+#include "dxgl.h"
+#include "globals.h"
 #include "list.h"
+#include "t3dlib3.h"
+#include <SDL2/SDL_surface.h>
 
 #ifndef LEVEL_H
 #define LEVEL_H
 
 #define GRID_HEIGHT 13
-#define GRID_WIDTH  17
+#define GRID_WIDTH 17
 
 #define BOMB_MASK 0xf8000000
 #define BOMB_SHAMT 27
@@ -28,7 +28,6 @@
 #define DETONATOR_TEX 12
 
 #define NUM_POWERUP_TEXTURES 14
-
 
 #define BOMB 0x10
 #define FLAME 0x20
@@ -49,23 +48,24 @@
 #define HAS_BOMB_MASK 0x04000000
 #define BRICK_BREAKING_MASK 0x02000000
 
-Bomb * placeBomb(int,int i,int j);
+Bomb* placeBomb(int, int i, int j);
 int pickupPowerUp(int i, int j);
 int unmaskGridSquare(int i, int j);
-int maskGridSquare(int i, int j,int bombIndex);
-int loadPowerUpTextures(const char * filename);
+int maskGridSquare(int i, int j, int bombIndex);
+int loadPowerUpTextures(const char* filename);
 int createLevelTextures();
-int createBasicLevel(int nbombs,int nflames, int nkick, int ndet, int nspeed);
-int loadLevelTextures(const char * filename);
-int loadLevel(const char * filename);
-int drawLevelTexture(int tNum,int x,int y);
-int drawLevelSmall(SDL_Surface*,int x,int y);
+int createBasicLevel(int nbombs, int nflames, int nkick, int ndet, int nspeed);
+int loadLevelTextures(const char* filename);
+int loadLevel(const char* filename);
+int drawLevelTexture(int tNum, int x, int y);
+int drawLevelSmall(SDL_Surface*, int x, int y);
 int drawLevel();
-int levelKill(Bomb *,int,int);
-int levelKillPlayer(Bomb *,int,int);
+int levelKill(Bomb*, int, int);
+int levelKillPlayer(Bomb*, int, int);
 int levelKick(int i, int j, int dir);
 int releaseLevelTextures();
 int releasePowerUpTextures();
-int checkGrid(int x, int y);int checkForPlayer(int x, int y);
+int checkGrid(int x, int y);
+int checkForPlayer(int x, int y);
 
 #endif
