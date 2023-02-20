@@ -1,6 +1,6 @@
 TARGETS: .cc. o
 OBJS=bman.o level.o bomb.o font.o ai.o queue.o BFSearch.o list.o player.o compat.o sound_dummy.o menu.o Socket.o network.o
-FLAGS=-g -DENABLE_NETWORK=1
+FLAGS=-g -DENABLE_NETWORK=1 -DENABLE_AI=1
 
 %.o: %.cc
 	g++ ${FLAGS} -c -o $@ $<
