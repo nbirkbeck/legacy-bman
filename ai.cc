@@ -9,7 +9,7 @@ extern unsigned int grid[GRID_HEIGHT][GRID_WIDTH];
 extern List playerList;
 extern Bomb bombs[TOTAL_BOMBS];
 
-extern LPDIRECTDRAWSURFACE7 lpddsback;
+extern SDL_Surface* surface;
 extern Font font;
 
 extern FILE * debug;
@@ -686,7 +686,7 @@ int brainThink1(Brain * brain,Player * player)
 						brain->path=NULL;
 
 						
-						drawFont(&font,"Path is Invalid",player->x,player->y);
+						drawFont(surface,&font,"Path is Invalid",player->x,player->y);
 							
 						brain->actionToTake=0;
 						if(player->powerups&KICK)
@@ -697,7 +697,7 @@ int brainThink1(Brain * brain,Player * player)
 					}
 					
 #ifdef DRAW_NEXT
-					drawFont(&font,"next",gx,gy);
+					drawFont(surface, &font,"next",gx,gy);
 #endif
 					brain->actionToTake=MOVE;
 					if(pi>next->i)
@@ -791,7 +791,7 @@ int brainThink1(Brain * brain,Player * player)
 				brain->actionToTake=0;
 				return 1;
 			}
-			drawFont(&font,"Search safe",player->x,player->y);
+			drawFont(surface, &font,"Search safe",player->x,player->y);
 			q=doBFS((player->y-YOFFSET+16)>>5,(player->x-XOFFSET+16)>>5,1,12);
 			brain->goal=GOAL_HIDE;
 		}
@@ -826,7 +826,7 @@ int brainThink1(Brain * brain,Player * player)
 			{
 				char str[5];
 				sprintf(str,"%d",utilities[i][j]);
-				drawFont(&font,str,(j<<5)+XOFFSET,(i<<5)+YOFFSET);
+				drawFont(surface, &font,str,(j<<5)+XOFFSET,(i<<5)+YOFFSET);
 			
 				j++;
 			}
@@ -842,7 +842,7 @@ int brainThink1(Brain * brain,Player * player)
 			{
 				char str[35];
 				sprintf(str,"%d",canHide(i,j,0));
-				drawFont(&font,str,(j<<5)+XOFFSET+16,(i<<5)+YOFFSET+16);
+				drawFont(surface, &font,str,(j<<5)+XOFFSET+16,(i<<5)+YOFFSET+16);
 				
 				j++;
 			}
@@ -863,7 +863,7 @@ int brainThink1(Brain * brain,Player * player)
 		strcat(note,temp);
 		finger = finger->next;
 	}
-	drawFont(&font,note,10,10);
+	drawFont(surface, &font,note,10,10);
 	}
 #endif
 	return 1;

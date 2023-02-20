@@ -3,12 +3,11 @@
 #include "level.h"
 #include "soundSyz.h"
 
-extern BITMAP_FILE bitFile;
-extern LPDIRECTDRAWSURFACE7 lpddsback;
+extern SDL_Surface* surface;
 extern int dtime;
 
-LPDIRECTDRAWSURFACE7 explosion[4][7];
-LPDIRECTDRAWSURFACE7 bombTex[4];
+SDL_Surface* explosion[4][7];
+SDL_Surface* bombTex[4];
 
 unsigned char bombFrameOrder[]={0,0,0,0,0,1,1,1,1,1,2,2,2,2,2,3,3,3,3,3,2,2,2,2,2,1,1,1,1,1};
 unsigned char numBombFrames = 30;
@@ -17,25 +16,21 @@ unsigned char numExplosionFrames = 27;
 
 int loadBombTextures()
 {
-	int i,x;
-	LPDIRECTDRAWSURFACE7 temp;
+	int i = 0, x = 0;
 	loadExplosionTextures();
 
-	Load_Bitmap_File(&bitFile,"./data/bomb.bmp");
-	temp = DDraw_Create_Surface(128,32,DDSCAPS_VIDEOMEMORY,0);
-	Scan_Image_Bitmap16(&bitFile,temp,0,0,128,32);
-	Unload_Bitmap_File(&bitFile);
+        SDL_Surface* temp = SDL_LoadBMP("./data/bomb.bmp");
 
-	i=0;
-	x=0;
 	while(i<4)
 	{
-		bombTex[i]= DDraw_Create_Surface(32,32,DDSCAPS_VIDEOMEMORY,0);
-		NDDraw_Draw_Surface(temp,x,0,32,32,bombTex[i],0);
-		x+=32;
-		i++;
+          bombTex[i]= SDL_CreateRGBSurface(0, 32,32, 32, 0, 0, 0, 0);
+          SDL_Rect rect = {x, 0, 32, 32};
+          SDL_BlitSurface(temp, &rect, bombTex[i], nullptr);
+          SDL_SetColorKey(bombTex[i], 1, 0);
+          x+=32;
+          i++;
 	}
-	temp->Release();
+	SDL_FreeSurface(temp);
 	return 1;	
 }
 
@@ -43,17 +38,9 @@ int loadBombTextures()
 
 int loadExplosionTextures()
 {
-	int i,j,x,y;
-	LPDIRECTDRAWSURFACE7 temp;
+	int i = 0, j = 0, x = 0, y = 0;
+        SDL_Surface* temp = SDL_LoadBMP("./data/explosion.bmp");
 
-	Load_Bitmap_File(&bitFile,"./data/explosion.bmp");
-	temp = DDraw_Create_Surface(224,128,DDSCAPS_VIDEOMEMORY,0);
-	Scan_Image_Bitmap16(&bitFile,temp,0,0,224,128);
-	Unload_Bitmap_File(&bitFile);
-
-	i=0;
-	x=0;
-	y=0;
 	while(i<NUM_DEGREES)
 	{
 		
@@ -61,15 +48,17 @@ int loadExplosionTextures()
 		x=0;
 		while(j<7)
 		{
-			explosion[i][j]=DDraw_Create_Surface(32,32,DDSCAPS_VIDEOMEMORY,0);
-			NDDraw_Draw_Surface(temp,x,y,32,32,explosion[i][j],0);
+			explosion[i][j]=SDL_CreateRGBSurface(0, 32,32, 32, 0, 0, 0, 0);
+                        SDL_Rect rect = {x, y, 32, 32};
+			SDL_BlitSurface(temp, &rect, explosion[i][j], nullptr);
+                        SDL_SetColorKey(explosion[i][j], 1, 0);
 			x+=32;
 			j++;
 		}
 		y+=32;
 		i++;
 	}
-	temp->Release();
+        SDL_FreeSurface(temp);
 	return 1;
 }
 int initBomb(Bomb * bomb,int x, int y,int state,int power, void * owner)
@@ -214,7 +203,7 @@ int drawBomb(Bomb * bomb)
 		}
 
 		DDraw_Draw_Surface(explosion[explosionFrameOrder[bomb->frame]][MID_EXP],
-						bomb->x,bomb->y,32,32,lpddsback,1);
+						bomb->x,bomb->y,32,32,surface,1);
 		if(bomb->depths[LEFT]!=0)
 		{
 			temp = abs(bomb->depths[LEFT]);
@@ -222,12 +211,12 @@ int drawBomb(Bomb * bomb)
 			if(bomb->depths[LEFT]>0)
 			{
 				DDraw_Draw_Surface(explosion[explosionFrameOrder[bomb->frame]][LEFT_EXP],
-					bomb->x-(temp<<5),bomb->y,32,32,lpddsback,1);
+					bomb->x-(temp<<5),bomb->y,32,32,surface,1);
 			}
 			while(i>0)
 			{
 				DDraw_Draw_Surface(explosion[explosionFrameOrder[bomb->frame]][HOR_EXP],
-					bomb->x-(i<<5),bomb->y,32,32,lpddsback,1);
+					bomb->x-(i<<5),bomb->y,32,32,surface,1);
 				i--;
 			}
 		}
@@ -238,12 +227,12 @@ int drawBomb(Bomb * bomb)
 			if(bomb->depths[RIGHT]>0)
 			{
 				DDraw_Draw_Surface(explosion[explosionFrameOrder[bomb->frame]][RIGHT_EXP],
-					bomb->x+(temp<<5),bomb->y,32,32,lpddsback,1);
+					bomb->x+(temp<<5),bomb->y,32,32,surface,1);
 			}
 			while(i>0)
 			{
 				DDraw_Draw_Surface(explosion[explosionFrameOrder[bomb->frame]][HOR_EXP],
-					bomb->x+(i<<5),bomb->y,32,32,lpddsback,1);
+					bomb->x+(i<<5),bomb->y,32,32,surface,1);
 				i--;
 			}
 		}
@@ -254,12 +243,12 @@ int drawBomb(Bomb * bomb)
 			if(bomb->depths[UP]>0)
 			{
 				DDraw_Draw_Surface(explosion[explosionFrameOrder[bomb->frame]][TOP_EXP],
-					bomb->x,bomb->y-(temp<<5),32,32,lpddsback,1);
+					bomb->x,bomb->y-(temp<<5),32,32,surface,1);
 			}
 			while(i>0)
 			{
 				DDraw_Draw_Surface(explosion[explosionFrameOrder[bomb->frame]][VER_EXP],
-					bomb->x,bomb->y-(i<<5),32,32,lpddsback,1);
+					bomb->x,bomb->y-(i<<5),32,32,surface,1);
 				i--;
 			}
 		}
@@ -270,12 +259,12 @@ int drawBomb(Bomb * bomb)
 			if(bomb->depths[DOWN]>0)
 			{
 				DDraw_Draw_Surface(explosion[explosionFrameOrder[bomb->frame]][BOTTOM_EXP],
-					bomb->x,bomb->y+(temp<<5),32,32,lpddsback,1);
+					bomb->x,bomb->y+(temp<<5),32,32,surface,1);
 			}
 			while(i>0)
 			{
 				DDraw_Draw_Surface(explosion[explosionFrameOrder[bomb->frame]][VER_EXP],
-					bomb->x,bomb->y+(i<<5),32,32,lpddsback,1);
+					bomb->x,bomb->y+(i<<5),32,32,surface,1);
 				i--;
 			}
 
@@ -286,7 +275,7 @@ int drawBomb(Bomb * bomb)
 	else
 	{
 		DDraw_Draw_Surface(bombTex[bombFrameOrder[bomb->frame%numBombFrames]],
-						bomb->x,bomb->y,32,32,lpddsback,1);
+						bomb->x,bomb->y,32,32,surface,1);
 	}
 	return 1;
 }
@@ -296,7 +285,7 @@ int drawExplosionTile(int type,int frame,int x, int y)
 
 	frame%=numExplosionFrames;
 	DDraw_Draw_Surface(explosion[explosionFrameOrder[frame]][type],
-						x,y,32,32,lpddsback,1);
+						x,y,32,32,surface,1);
 	return 1;
 }
 
@@ -538,7 +527,7 @@ int releaseBombTextures()
 		{
 			if(explosion[i][j])
 			{
-				explosion[i][j]->Release();
+                          SDL_FreeSurface(explosion[i][j]);
 				explosion[i][j]=NULL;
 			}
 			j++;
@@ -550,7 +539,7 @@ int releaseBombTextures()
 	{
 		if(bombTex[i])
 		{
-			bombTex[i]->Release();
+                  SDL_FreeSurface(bombTex[i]);
 			bombTex[i]=NULL;
 		}
 		i++;

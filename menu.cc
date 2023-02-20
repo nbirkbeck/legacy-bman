@@ -5,15 +5,15 @@
 #include "level.h"
 #include "t3dlib3.h"
 #include "soundSyz.h"
+#include <SDL2/SDL.h>
+#include <unordered_map>
 void updateScreen();
 
-extern BITMAP_FILE bitFile;
-extern LPDIRECTDRAWSURFACE7  lpddsprimary;
-extern LPDIRECTDRAWSURFACE7  lpddsback ;
+extern SDL_Surface* surface;
 extern Font font;
 extern Font menuFont,menuFontGlo;
 extern int  (* Game_Main_Func)(void);
-extern bool keys[256];
+extern std::unordered_map<int, bool> keys;
 extern char fps[50];
 extern int menuMidi;
 
@@ -26,7 +26,7 @@ int Game_Main();
 
 int mainMenuSel=0;
 char options[5][20]={"Single Player","Multi-Player","High Scores","Options","Exit"};
-LPDIRECTDRAWSURFACE7 background=NULL;
+SDL_Surface* background=NULL;
 
 int drawFPS(int);
 int drawTime(int);
@@ -44,7 +44,7 @@ void gotoGameMain()
 	Game_Main_Func = Game_Main;
 	releaseFont(&menuFontGlo);
 	releaseFont(&menuFont);
-	background->Release();
+	SDL_FreeSurface(background);
 	background=NULL;
 }
 
@@ -62,14 +62,14 @@ int mainMenuActions(int option)
 		Game_Main_Func = Game_Main;
 		releaseFont(&menuFontGlo);
 		releaseFont(&menuFont);
-		background->Release();
+		SDL_FreeSurface(background);
 		background=NULL;
 		break;
 	case 3:
 	case 4:
 		releaseFont(&menuFontGlo);
 		releaseFont(&menuFont);
-		background->Release();
+                SDL_FreeSurface(background);
 		background=NULL;
 		exit(1);
 		break;
@@ -269,7 +269,7 @@ int drawLevelSelect()
 			loadLevel(temp);
 		}
 	}
-	drawLevelSmall(lpddsback,184,120);
+	drawLevelSmall(surface,184,120);
 	if(selectedLevel==numLevels)
 	{
 		sprintf(temp,"Random, Press G to generate");
@@ -282,7 +282,7 @@ int drawLevelSelect()
 	}
 	x=320-(getLength(&menuFont,temp)>>1);
 	y=120-menuFont.point-5;
-	drawFont(&menuFont,temp,x,y);
+	drawFont(surface, &menuFont,temp,x,y);
 	
 	/*
 		draw the menu
@@ -291,57 +291,57 @@ int drawLevelSelect()
 	x=320-2*menuFont.point;
 	y=360;
 	if(selected==0)
-		drawFont(&menuFontGlo,menuItems[0],x,y);
+          drawFont(surface, &menuFontGlo,menuItems[0],x,y);
 	else
-		drawFont(&menuFont,menuItems[0],x,y);
+          drawFont(surface, &menuFont,menuItems[0],x,y);
 	
 	x=320+menuFont.point;
 	y=360;
 	if(selected==1)
-		drawFont(&menuFontGlo,menuItems[1],x,y);
+		drawFont(surface, &menuFontGlo,menuItems[1],x,y);
 	else
-		drawFont(&menuFont,menuItems[1],x,y);
+		drawFont(surface, &menuFont,menuItems[1],x,y);
 	
 	x=320-(getLength(&menuFont,menuItems[2])>>1);
 	y=380;
 	if(selected==2)
-		drawFont(&menuFontGlo,menuItems[2],x,y);
+		drawFont(surface, &menuFontGlo,menuItems[2],x,y);
 	else
-		drawFont(&menuFont,menuItems[2],x,y);
+		drawFont(surface, &menuFont,menuItems[2],x,y);
 
-	if(keys[VK_UP])
+	if(keys[SDLK_UP])
 	{
 		playMenuItemSound();
 		if(selected==2)
 			selected=0;
 		else selected=2;
-		keys[VK_UP]=0;
+		keys[SDLK_UP]=0;
 	}
 
-	if(keys[VK_DOWN])
+	if(keys[SDLK_DOWN])
 	{
 		playMenuItemSound();
 		if(selected<=1)
 			selected =2;
 		else selected=0;
-		keys[VK_DOWN]=0;
+		keys[SDLK_DOWN]=0;
 	}
 
-	if(keys[VK_RIGHT])
+	if(keys[SDLK_RIGHT])
 	{
 		playMenuItemSound();
 		selected=1;
 		drawLevelSelect_rightSelected(levelNames,&selectedLevel,&numLevels);
-		keys[VK_RIGHT]=0;
+		keys[SDLK_RIGHT]=0;
 	}
-	if(keys[VK_LEFT])
+	if(keys[SDLK_LEFT])
 	{
 		playMenuItemSound();
 		drawLevelSelect_leftSelected(levelNames,&selectedLevel,&numLevels);
 		selected=0;
-		keys[VK_LEFT]=0;
+		keys[SDLK_LEFT]=0;
 	}
-	if(keys[VK_RETURN])
+	if(keys[SDLK_RETURN])
 	{
 		switch(selected)
 		{
@@ -357,7 +357,7 @@ int drawLevelSelect()
 		}
 
 		
-		keys[VK_RETURN]=0;
+		keys[SDLK_RETURN]=0;
 	}
 	if(keys['g']||keys['G'])
 	{
@@ -385,31 +385,31 @@ int drawSinglePlayerMenu()
 		char string[16];
 		x=xback;
 		sprintf(string,"Player %d: ",i+1);
-		drawFont(&menuFont,string,&x,&y);
+		drawFont(surface, &menuFont,string,&x,&y);
 		sprintf(string,"%s",states[playerStates[i]]);
 		if(sel==i)
 		{
-			if(keys[VK_RIGHT])
+			if(keys[SDLK_RIGHT])
 			{
 				playMenuSelectSound();
 				playerStates[i]++;
 				playerStates[i]%=6;
-				keys[VK_RIGHT]=0;
+				keys[SDLK_RIGHT]=0;
 			}
-			if(keys[VK_LEFT])
+			if(keys[SDLK_LEFT])
 			{
 				playMenuSelectSound();
 				playerStates[i]--;
 				if(playerStates[i]<0)
 					playerStates[i]=5;
-				keys[VK_LEFT]=0;
+				keys[SDLK_LEFT]=0;
 			}
 
-			drawFont(&menuFontGlo,string,&x,&y);
+			drawFont(surface, &menuFontGlo,string,&x,&y);
 		}
 		else
 		{
-			drawFont(&menuFont,string,&x,&y);
+			drawFont(surface, &menuFont,string,&x,&y);
 		}
 		i++;
 		y+=(menuFont.point+5);
@@ -417,39 +417,39 @@ int drawSinglePlayerMenu()
 
 	x=320-(getLength(&menuFont,"Choose Level")>>1);
 	if(sel==4)
-		drawFont(&menuFontGlo,"Choose Level",&x,&y);
-	else drawFont(&menuFont,"Choose Level",&x,&y);
+		drawFont(surface, &menuFontGlo,"Choose Level",&x,&y);
+	else drawFont(surface, &menuFont,"Choose Level",&x,&y);
 	y+=(menuFont.point+5);
 
 	x=320-(getLength(&menuFont,"Start")>>1);
 	if(sel==5)
-		drawFont(&menuFontGlo,"Start",&x,&y);
-	else drawFont(&menuFont,"Start",&x,&y);
+		drawFont(surface, &menuFontGlo,"Start",&x,&y);
+	else drawFont(surface, &menuFont,"Start",&x,&y);
 	y+=(menuFont.point+5);
 
 	x=320-(getLength(&menuFont,"Back")>>1);
 	if(sel==6)
-		drawFont(&menuFontGlo,"Back",&x,&y);
-	else drawFont(&menuFont,"Back",&x,&y);
+		drawFont(surface, &menuFontGlo,"Back",&x,&y);
+	else drawFont(surface, &menuFont,"Back",&x,&y);
 		
-	if(keys[VK_UP])
+	if(keys[SDLK_UP])
 	{
 		playMenuItemSound();
 		sel--;
 		if(sel<0)
 			sel=6;
 		
-		keys[VK_UP]=0;
+		keys[SDLK_UP]=0;
 	}
-	if(keys[VK_DOWN])
+	if(keys[SDLK_DOWN])
 	{
 		playMenuItemSound();
 		sel++;
 		if(sel>6)
 			sel=0;
-		keys[VK_DOWN]=0;
+		keys[SDLK_DOWN]=0;
 	}
-	if(keys[VK_RETURN])
+	if(keys[SDLK_RETURN])
 	{
 		playMenuSelectSound();
 		switch(sel)
@@ -480,7 +480,7 @@ int drawSinglePlayerMenu()
 			break;
 
 		}
-		keys[VK_RETURN]=0;
+		keys[SDLK_RETURN]=0;
 	}
 	return 1;
 }
@@ -502,58 +502,58 @@ int drawMultiPlayerServerMenu()
 	x=320-(getLength(&menuFont,output)>>1);
 	if(multiSel==0)
 	{
-		drawFont(&menuFontGlo,output,&x,&y);
-		if(keys[VK_RIGHT])
+		drawFont(surface, &menuFontGlo,output,&x,&y);
+		if(keys[SDLK_RIGHT])
 		{
 			nPlayers++;
 			if(nPlayers>4)
 				nPlayers=4;
-			keys[VK_RIGHT]=0;
+			keys[SDLK_RIGHT]=0;
 		}
-		if(keys[VK_LEFT])
+		if(keys[SDLK_LEFT])
 		{
 			nPlayers--;
 			if(nPlayers<=0)
 				nPlayers=0;
-			keys[VK_LEFT]=0;
+			keys[SDLK_LEFT]=0;
 		}
 	}
-	else drawFont(&menuFont,output,&x,&y);
+	else drawFont(surface, &menuFont,output,&x,&y);
 	
 	y+=menuFont.point+5;
 	sprintf(output,"%s%s",menuItems[1],gameTypes[1]);
 	x=320-(getLength(&menuFont,output)>>1);
-	drawFont(&menuFont,menuItems[1],&x,&y);
+	drawFont(surface, &menuFont,menuItems[1],&x,&y);
 	if(multiSel==1)
 	{
-		drawFont(&menuFontGlo,gameTypes[gametype],&x,&y);
-		if(keys[VK_RIGHT]||keys[VK_LEFT])
+		drawFont(surface, &menuFontGlo,gameTypes[gametype],&x,&y);
+		if(keys[SDLK_RIGHT]||keys[SDLK_LEFT])
 		{
-			keys[VK_RIGHT]=0;
-			keys[VK_LEFT]=0;
+			keys[SDLK_RIGHT]=0;
+			keys[SDLK_LEFT]=0;
 			gametype++;
 			gametype%=2;
 		}
 		
 	}
-	else drawFont(&menuFont,gameTypes[gametype],&x,&y);
+	else drawFont(surface, &menuFont,gameTypes[gametype],&x,&y);
 
 	y+=menuFont.point+5;
 	sprintf(output,"%s %s",menuItems[2],input);
 	x=320-(getLength(&menuFont,output)>>1);
 	if(multiSel==2)
 	{
-		drawFont(&menuFontGlo,output,&x,&y);
+		drawFont(surface, &menuFontGlo,output,&x,&y);
 	}
-	else drawFont(&menuFont,output,&x,&y);
+	else drawFont(surface, &menuFont,output,&x,&y);
 
 	y+=menuFont.point+5;
 	x=320-(getLength(&menuFont,menuItems[3])>>1);
 	if(multiSel==3)
 	{
-		drawFont(&menuFontGlo,menuItems[3],x,y);
+		drawFont(surface, &menuFontGlo,menuItems[3],x,y);
 	}
-	else drawFont(&menuFont,menuItems[3],x,y);
+	else drawFont(surface, &menuFont,menuItems[3],x,y);
 
 	y+=menuFont.point+5;
 	
@@ -562,33 +562,33 @@ int drawMultiPlayerServerMenu()
 	{
 		x=320-(getLength(&menuFont,menuItems[i])>>1);
 		if(i==multiSel)
-			drawFont(&menuFontGlo,menuItems[i],x,y);
+			drawFont(surface, &menuFontGlo,menuItems[i],x,y);
 		else
-			drawFont(&menuFont,menuItems[i],x,y);
+			drawFont(surface, &menuFont,menuItems[i],x,y);
 		y+=(menuFont.point+5);
 		i++;
 	}	
 	
-	if(keys[VK_UP]||keys[VK_LEFT])
+	if(keys[SDLK_UP]||keys[SDLK_LEFT])
 	{
 		playMenuItemSound();
 		multiSel--;
 		if(multiSel<0)
 			multiSel=5;
-		keys[VK_UP]=keys[VK_LEFT]=0;
+		keys[SDLK_UP]=keys[SDLK_LEFT]=0;
 	}
 
-	if(keys[VK_DOWN]||keys[VK_RIGHT])
+	if(keys[SDLK_DOWN]||keys[SDLK_RIGHT])
 	{
 		playMenuItemSound();
 		multiSel++;
 		if(multiSel>5)
 			multiSel=0;
-		keys[VK_DOWN]=keys[VK_RIGHT]=0;
+		keys[SDLK_DOWN]=keys[SDLK_RIGHT]=0;
 	}
 
 	
-	if(keys[VK_RETURN])
+	if(keys[SDLK_RETURN])
 	{
 		playMenuSelectSound();
 		switch(multiSel)
@@ -617,7 +617,7 @@ int drawMultiPlayerServerMenu()
 			drawMenu=drawMultiPlayerMenu;
 			break;
 		}
-		keys[VK_RETURN]=0;
+		keys[SDLK_RETURN]=0;
 	}
 
 	return 1;
@@ -638,16 +638,16 @@ int drawMultiPlayerClientMenu()
 
 	x=320-(getLength(&menuFont,"Address:")>>1);
 	y=200;
-	drawFont(&menuFont,"Address:",&x,&y);
+	drawFont(surface, &menuFont,"Address:",&x,&y);
 	y+=(menuFont.point+5);
 
 	x=320-(getLength(&menuFont,input)>>1);
 	if(x<0)
 		x=80;
-	drawFont(&menuFont,input,&x,&y);
+	drawFont(surface, &menuFont,input,&x,&y);
 	if((timer>>4)%2==0)
-		drawFont(&menuFont,"_",&x,&y);
-	else drawFont(&menuFontGlo,"_",&x,&y);
+		drawFont(surface, &menuFont,"_",&x,&y);
+	else drawFont(surface, &menuFontGlo,"_",&x,&y);
 	i=0;
 	
 
@@ -659,10 +659,10 @@ int drawMultiPlayerClientMenu()
 		
 		if(i==multiSel)
 		{
-			drawFont(&menuFontGlo,menuItems[i],x,y);
+			drawFont(surface, &menuFontGlo,menuItems[i],x,y);
 		}
 		else
-			drawFont(&menuFont,menuItems[i],x,y);
+			drawFont(surface, &menuFont,menuItems[i],x,y);
 		
 		y+=(menuFont.point+5);
 		i++;
@@ -670,24 +670,24 @@ int drawMultiPlayerClientMenu()
 
 	
 
-	if(keys[VK_UP]||keys[VK_LEFT])
+	if(keys[SDLK_UP]||keys[SDLK_LEFT])
 	{
 		playMenuItemSound();
 		multiSel--;
 		if(multiSel<0)
 			multiSel=1;
-		keys[VK_UP]=keys[VK_LEFT]=0;
+		keys[SDLK_UP]=keys[SDLK_LEFT]=0;
 	}
 
-	if(keys[VK_DOWN]||keys[VK_RIGHT])
+	if(keys[SDLK_DOWN]||keys[SDLK_RIGHT])
 	{
 		playMenuItemSound();
 		multiSel++;
 		if(multiSel>1)
 			multiSel=0;
-		keys[VK_DOWN]=keys[VK_RIGHT]=0;
+		keys[SDLK_DOWN]=keys[SDLK_RIGHT]=0;
 	}
-	if(keys[VK_RETURN])
+	if(keys[SDLK_RETURN])
 	{
 		playMenuSelectSound();
 		switch(multiSel)
@@ -702,7 +702,7 @@ int drawMultiPlayerClientMenu()
 			drawMenu=drawMultiPlayerMenu;
 			break;
 		}
-		keys[VK_RETURN]=0;
+		keys[SDLK_RETURN]=0;
 	}
 	return 1;
 }
@@ -723,31 +723,31 @@ int drawMultiPlayerMenu()
 		
 		if(i==multiSel)
 		{
-			drawFont(&menuFontGlo,menuItems[i],x,y);
+			drawFont(surface, &menuFontGlo,menuItems[i],x,y);
 		}
 		else
-			drawFont(&menuFont,menuItems[i],x,y);
+			drawFont(surface, &menuFont,menuItems[i],x,y);
 		
 		y+=(menuFont.point+5);
 		i++;
 	}
-	if(keys[VK_UP])
+	if(keys[SDLK_UP])
 	{
 		playMenuItemSound();
 		multiSel--;
 		if(multiSel<0)
 			multiSel=2;
-		keys[VK_UP]=0;
+		keys[SDLK_UP]=0;
 	}
-	if(keys[VK_DOWN])
+	if(keys[SDLK_DOWN])
 	{
 		playMenuItemSound();
 		multiSel++;
 		if(multiSel>2)
 			multiSel=0;
-		keys[VK_DOWN]=0;
+		keys[SDLK_DOWN]=0;
 	}
-	if(keys[VK_RETURN])
+	if(keys[SDLK_RETURN])
 	{
 		playMenuSelectSound();
 		switch(multiSel)
@@ -764,7 +764,7 @@ int drawMultiPlayerMenu()
 			drawMenu=drawMainMenu;
 			break;
 		}
-		keys[VK_RETURN]=0;
+		keys[SDLK_RETURN]=0;
 	}
 	return 1;
 }
@@ -779,8 +779,9 @@ int drawMainMenu()
 	int y=200;
 	
 	static int mainMenuSel=0;
-	
-	DDraw_Draw_Surface(background,0,0,640,480,lpddsback,1);
+
+        SDL_Rect src_rect = {0, 0, 640, 480};
+	SDL_BlitSurface(background, &src_rect, surface, &src_rect);
 	while(i<5)
 	{
 		j=0;
@@ -788,64 +789,65 @@ int drawMainMenu()
 		
 		if(i==mainMenuSel)
 		{
-			drawFont(&menuFontGlo,options[i],x,y);
+			drawFont(surface, &menuFontGlo,options[i],x,y);
 		}
 		else
-			drawFont(&menuFont,options[i],x,y);
+			drawFont(surface, &menuFont,options[i],x,y);
 		
 		y+=(menuFont.point+5);
 		i++;
 	}
 
-	if(keys[VK_UP])
+	if(keys[SDLK_UP])
 	{
 		playMenuItemSound();
 		mainMenuSel--;
 		if(mainMenuSel<0)
 			mainMenuSel=4;
-		keys[VK_UP]=0;
+		keys[SDLK_UP]=0;
 	}
 
-	if(keys[VK_DOWN])
+	if(keys[SDLK_DOWN])
 	{
 		playMenuItemSound();
 		mainMenuSel++;
 		if(mainMenuSel>=5)
 			mainMenuSel=0;
-		keys[VK_DOWN]=0;
+		keys[SDLK_DOWN]=0;
 	}
 	
-	if(keys[VK_RETURN])
+	if(keys[SDLK_RETURN])
 	{
 		inputIndex=0;
 		input[0]='\0';
 		playMenuSelectSound();
 		mainMenuActions(mainMenuSel);
-		keys[VK_RETURN]=0;
+		keys[SDLK_RETURN]=0;
 	}
 	return 1;
 }
 
 int Game_Menu()
 {
-	DDraw_Fill_Surface(lpddsback,0);
+  SDL_FillRect(surface, nullptr, 0);
 
 	if(menuFont.point<=0||menuFontGlo.point<=0)
 	{
 		loadFont(&menuFont,"./fonts/font30_2",30);
 		loadFont(&menuFontGlo,"./fonts/font30_2_glo",30);
-		
-		Load_Bitmap_File(&bitFile,"./data/main.bmp");
-		background = DDraw_Create_Surface(640,480,DDSCAPS_VIDEOMEMORY,0);
-		Scan_Image_Bitmap16(&bitFile,background,0,0,640,480);
-		Unload_Bitmap_File(&bitFile);
+
+                background = SDL_LoadBMP("./data/main.bmp");
 
 		drawMenu=drawMainMenu;
+#ifdef ENABLE_SOUND
 		DMusic_Play(menuMidi);
+#endif
 	}
 
 	drawMenu();
+#ifdef ENABLE_SOUND
 	drawSoundSyz();
+#endif
 	drawFPS(450);
 	drawConsole();
 	updateScreen();
@@ -854,7 +856,7 @@ int Game_Menu()
 
 int MenuKeyHandler(int key)
 {
-	if(key==VK_BACK)
+	if(key==SDLK_AC_BACK)
 	{
 		if(inputIndex>0)
 			inputIndex--;

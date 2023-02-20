@@ -1,6 +1,6 @@
 #ifndef COMPAT_H
 #define COMPAT_H
-
+#include <SDL2/SDL_surface.h>
 #include <stdint.h>
 
 class DIRECTDRAWSURFACE7 {
@@ -73,15 +73,16 @@ class POINT {
   int32_t y;
 };
 
-typedef uint16_t DWORD;
+typedef int32_t DWORD;
+typedef uint16_t USHORT;
 
-enum Keyboard {
-               VK_DOWN,
-               VK_UP,
-               VK_RIGHT,
-               VK_LEFT,
-               VK_RETURN,
-               VK_BACK,
-};
+
+void DDraw_Draw_Surface(SDL_Surface* src,
+                        int x, int y, int w, int h,
+                        SDL_Surface* dest, int transparent = 1);
+
+void DDraw_DrawSized_Surface(SDL_Surface* src,
+                             int x, int y, int w, int h, int sw, int sh,
+                             SDL_Surface* dest, int transparent = 1);
 
 #endif

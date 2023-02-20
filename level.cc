@@ -8,14 +8,14 @@
 
 char curTextures[255];
 
-extern LPDIRECTDRAWSURFACE7 lpddsback;
+extern SDL_Surface* surface;
 extern BITMAP_FILE bitFile;
 extern Font font;
 extern FILE * debug;
 
-LPDIRECTDRAWSURFACE7 border[4]; 
-LPDIRECTDRAWSURFACE7 levelTextures[NUM_LEVEL_TEXTURES];
-LPDIRECTDRAWSURFACE7 powerUpTextures[NUM_POWERUP_TEXTURES];
+SDL_Surface* border[4]; 
+SDL_Surface* levelTextures[NUM_LEVEL_TEXTURES];
+SDL_Surface* powerUpTextures[NUM_POWERUP_TEXTURES];
 
 Bomb bombs[TOTAL_BOMBS];
 unsigned int grid[GRID_HEIGHT][GRID_WIDTH];
@@ -28,6 +28,8 @@ List bombsInUse;
 
 extern bool keys[256];
 extern List playerList;
+
+
 
 void reclaimAllBombs()
 {
@@ -67,28 +69,22 @@ Bomb * placeBomb(int playerNum,int i,int j)
 	return NULL;
 }
 
-int loadPowerUpTextures(char * filename)
+int loadPowerUpTextures(const char * filename)
 {
-	int i,y;
-	LPDIRECTDRAWSURFACE7 temp;
-	
-	Load_Bitmap_File(&bitFile,filename);
-	temp = DDraw_Create_Surface(32,448,DDSCAPS_VIDEOMEMORY,0);
-	Scan_Image_Bitmap16(&bitFile,temp,0,0,32,448);
-	Unload_Bitmap_File(&bitFile);
+  int i = 0, y = 0;
+  SDL_Surface* temp = SDL_LoadBMP(filename);
+        
+  while(i<NUM_POWERUP_TEXTURES)
+  {
+    powerUpTextures[i] = SDL_CreateRGBSurface(0, 32, 32, 32, 0, 0, 0, 0);
+    SDL_Rect src_rect = {0, y, 32, 32};
+    SDL_BlitSurface(temp, &src_rect, powerUpTextures[i], nullptr);
+    i++;
+    y+=32;
+  }
 
-	i=0;
-	y=0;
-	while(i<NUM_POWERUP_TEXTURES)
-	{
-		powerUpTextures[i]=DDraw_Create_Surface(32,32,DDSCAPS_VIDEOMEMORY,0);
-		NDDraw_Draw_Surface(temp,0,y,32,32,powerUpTextures[i],0);
-		i++;
-		y+=32;
-	}
-
-	temp->Release();
-	return 1;
+  SDL_FreeSurface(temp);
+  return 1;
 }
 
 int createLevelTextures()
@@ -98,53 +94,52 @@ int createLevelTextures()
 	reclaimAllBombs();
 	bombsInUse.head=NULL;
 
-	border[LEFT] = DDraw_Create_Surface(48,480,DDSCAPS_VIDEOMEMORY,0);
-	border[RIGHT]= DDraw_Create_Surface(48,480,DDSCAPS_VIDEOMEMORY,0);
-	border[UP] = DDraw_Create_Surface(544,32,DDSCAPS_VIDEOMEMORY,0);
-	border[DOWN]= DDraw_Create_Surface(544,32,DDSCAPS_VIDEOMEMORY,0);
+	border[LEFT] = SDL_CreateRGBSurface(0,48,480,32,0,0,0,0);
+	border[RIGHT]= SDL_CreateRGBSurface(0,48,480,32,0,0,0,0);
+	border[UP] = SDL_CreateRGBSurface(0,544,32,32,0,0,0,0);
+	border[DOWN]= SDL_CreateRGBSurface(0,544,32,32,0,0,0,0);
 
 	i=0;
 	while(i<NUM_LEVEL_TEXTURES)
 	{
-		levelTextures[i]=DDraw_Create_Surface(32,32,DDSCAPS_VIDEOMEMORY,0);
-		i++;
+          levelTextures[i]=SDL_CreateRGBSurface(0,32,32,32,0,0,0,0);
+          SDL_SetColorKey(levelTextures[i], 1, 0);
+          i++;
 	}
 	return 1;
 }
 
-int loadLevelTextures(char * filename)
+int loadLevelTextures(const char * filename)
 {
-	int i,x;
-	LPDIRECTDRAWSURFACE7 temp;
+	int i = 0, x = 0;
 
 	sprintf(curTextures,filename);
 	
-	Load_Bitmap_File(&bitFile,filename);
-	temp = DDraw_Create_Surface(640,480,DDSCAPS_VIDEOMEMORY,0);
-	Scan_Image_Bitmap16(&bitFile,temp,0,0,640,480);
-	Unload_Bitmap_File(&bitFile);
-
-	i=0;
-	x=0;
+	SDL_Surface* temp = SDL_LoadBMP(filename);
 
 	reclaimAllBombs();
 	bombsInUse.head=NULL;
 
-	NDDraw_Draw_Surface(temp,0,0,48,480,border[LEFT],0);
-	NDDraw_Draw_Surface(temp,592,0,48,480,border[RIGHT],0);
-	NDDraw_Draw_Surface(temp,48,0,544,32,border[UP],0);
-	NDDraw_Draw_Surface(temp,48,448,544,32,border[DOWN],0);
+        SDL_Rect left_rect = {0, 0, 48, 480};
+	SDL_BlitSurface(temp,&left_rect,border[LEFT],0);
+        SDL_Rect right_rect = {592, 0, 48, 480};
+	SDL_BlitSurface(temp, &right_rect,border[RIGHT],0);
+        SDL_Rect up_rect = {48, 0, 544, 32};
+	SDL_BlitSurface(temp, &up_rect,border[UP],0);
+        SDL_Rect down_rect = {48, 448, 544, 32};
+	SDL_BlitSurface(temp, &down_rect, border[DOWN],0);
 
 	i=0;
 	x=48;
 	while(i<NUM_LEVEL_TEXTURES)
 	{
-		NDDraw_Draw_Surface(temp,x,32,32,32,levelTextures[i],0);
-		i++;
-		x+=32;
+          SDL_Rect rect = {x, 32, 32, 32};
+          SDL_BlitSurface(temp, &rect, levelTextures[i],0);
+          i++;
+          x+=32;
 	}
 
-	temp->Release();
+	SDL_FreeSurface(temp);
 	return 1;
 }
 
@@ -243,7 +238,7 @@ int createBasicLevel(int nbombs,int nflames, int nkick, int ndet, int nspeed)
 }
 
 
-int loadLevel(char * filename)
+int loadLevel(const char * filename)
 {
 	int i,j;
 	char mapName[255];
@@ -306,7 +301,7 @@ int drawScoreBoard()
 		
 		drawScoreBoardPlayer(player,x,y);
 		sprintf(score,"%d %d %d",player->nkills,player->ndeaths,player->nsuicides);
-		drawFont(&font,score,x,y+32);
+		drawFont(surface, &font,score,x,y+32);
 		y+=64;
 		finger = finger->next;
 	}
@@ -315,11 +310,14 @@ int drawScoreBoard()
 
 int drawLevelTexture(int tNum,int x,int y)
 {
-	DDraw_Draw_Surface(levelTextures[tNum],x,y,32,32,lpddsback,1);
-	return 1;
+  SDL_Rect rect = {x, y, 32, 32};
+  SDL_BlitSurface(levelTextures[tNum], &rect, surface, nullptr);
+  return 1;
 }
 
-int drawLevelSmall(LPDIRECTDRAWSURFACE7 lpddsback,int x,int y)
+
+
+int drawLevelSmall(SDL_Surface* surface,int x,int y)
 {
 	int i=0;
 	int j=0;
@@ -333,19 +331,19 @@ int drawLevelSmall(LPDIRECTDRAWSURFACE7 lpddsback,int x,int y)
 			{
 				DDraw_DrawSized_Surface(levelTextures[FLOOR_TEX],
 						x+(j<<4),y+(i<<4),32,32,16,16,
-						lpddsback,1);
+						surface);
 			}
 			else if((grid[i][j]&ALT_FLOOR)==ALT_FLOOR)
 			{
 				DDraw_DrawSized_Surface(levelTextures[ALT_FLOOR_TEX],
 						x+(j<<4),y+(i<<4),32,32,16,16,
-						lpddsback,1);
+						surface);
 			}
 			if((grid[i][j]&INDY_BRICK)==INDY_BRICK)
 			{
 				DDraw_DrawSized_Surface(levelTextures[INDY_TEX],
 						x+(j<<4),y+(i<<4),32,32,16,16,
-						lpddsback,1);
+						surface);
 			}
 			else if((grid[i][j]&BRICK)==BRICK)
 			{
@@ -359,42 +357,42 @@ int drawLevelSmall(LPDIRECTDRAWSURFACE7 lpddsback,int x,int y)
 					}
 					DDraw_DrawSized_Surface(levelTextures[brickBreakingFrameOrder[grid[i][j]>>27]],
 						x+(j<<4),y+(i<<4),32,32,16,16,
-						lpddsback,1);
+						surface);
 				}
 				else
 				DDraw_DrawSized_Surface(levelTextures[BRICK_TEX + (grid[i][j]>>27)],
 						x+(j<<4),y+(i<<4),32,32,16,16,
-						lpddsback,1);
+						surface);
 			}
 			else if(grid[i][j]&BOMB)
 			{
 				DDraw_DrawSized_Surface(powerUpTextures[BOMB_TEX],
 						x+(j<<4),y+(i<<4),32,32,16,16,
-						lpddsback,1);
+						surface);
 			}
 			else if(grid[i][j]&FLAME)
 			{
 				DDraw_DrawSized_Surface(powerUpTextures[FLAME_TEX],
 						x+(j<<4),y+(i<<4),32,32,16,16,
-						lpddsback,1);
+						surface);
 			}
 			else if(grid[i][j]&KICK)
 			{
 				DDraw_DrawSized_Surface(powerUpTextures[KICK_TEX],
 						x+(j<<4),y+(i<<4),32,32,16,16,
-						lpddsback,1);
+						surface);
 			}
 			else if(grid[i][j]&SPEED)
 			{
 				DDraw_DrawSized_Surface(powerUpTextures[SPEED_TEX],
 						x+(j<<4),y+(i<<4),32,32,16,16,
-						lpddsback,1);
+						surface);
 			}
 			else if(grid[i][j]&DETONATOR)
 			{
 				DDraw_DrawSized_Surface(powerUpTextures[DETONATOR_TEX],
 						x+(j<<4),y+(i<<4),32,32,16,16,
-						lpddsback,1);
+						surface);
 			}
 			j++;					
 		}
@@ -414,16 +412,16 @@ int drawLevel()
 
 	DDraw_Draw_Surface(border[LEFT],
 						0,0,48,480,
-						lpddsback,1);
+						surface);
 	DDraw_Draw_Surface(border[UP],
 						48,0,544,32,
-						lpddsback,1);
+						surface);
 	DDraw_Draw_Surface(border[RIGHT],
 						592,0,48,480,
-						lpddsback,1);
+						surface);
 	DDraw_Draw_Surface(border[DOWN],
 						48,448,544,32,
-						lpddsback,1);
+						surface);
 
 	drawScoreBoard();
 
@@ -437,19 +435,19 @@ int drawLevel()
 			{
 				DDraw_Draw_Surface(levelTextures[FLOOR_TEX],
 						XOFFSET+(j<<5),YOFFSET+(i<<5),32,32,
-						lpddsback,1);
+						surface);
 			}
 			else if((grid[i][j]&ALT_FLOOR)==ALT_FLOOR)
 			{
 				DDraw_Draw_Surface(levelTextures[ALT_FLOOR_TEX],
 						XOFFSET+(j<<5),YOFFSET+(i<<5),32,32,
-						lpddsback,1);
+						surface);
 			}
 			if((grid[i][j]&INDY_BRICK)==INDY_BRICK)
 			{
 				DDraw_Draw_Surface(levelTextures[INDY_TEX],
 						XOFFSET+(j<<5),YOFFSET+(i<<5),32,32,
-						lpddsback,1);
+						surface);
 			}
 			else if((grid[i][j]&BRICK)==BRICK)
 			{
@@ -463,42 +461,42 @@ int drawLevel()
 					}
 					DDraw_Draw_Surface(levelTextures[brickBreakingFrameOrder[grid[i][j]>>27]],
 						XOFFSET+(j<<5),YOFFSET+(i<<5),32,32,
-						lpddsback,1);
+						surface);
 				}
 				else
 				DDraw_Draw_Surface(levelTextures[BRICK_TEX + (grid[i][j]>>27)],
 						XOFFSET+(j<<5),YOFFSET+(i<<5),32,32,
-						lpddsback,1);
+						surface);
 			}
 			else if(grid[i][j]&BOMB)
 			{
 				DDraw_Draw_Surface(powerUpTextures[BOMB_TEX],
 						XOFFSET+(j<<5),YOFFSET+(i<<5),32,32,
-						lpddsback,1);
+						surface);
 			}
 			else if(grid[i][j]&FLAME)
 			{
 				DDraw_Draw_Surface(powerUpTextures[FLAME_TEX],
 						XOFFSET+(j<<5),YOFFSET+(i<<5),32,32,
-						lpddsback,1);
+						surface);
 			}
 			else if(grid[i][j]&KICK)
 			{
 				DDraw_Draw_Surface(powerUpTextures[KICK_TEX],
 						XOFFSET+(j<<5),YOFFSET+(i<<5),32,32,
-						lpddsback,1);
+						surface);
 			}
 			else if(grid[i][j]&SPEED)
 			{
 				DDraw_Draw_Surface(powerUpTextures[SPEED_TEX],
 						XOFFSET+(j<<5),YOFFSET+(i<<5),32,32,
-						lpddsback,1);
+						surface);
 			}
 			else if(grid[i][j]&DETONATOR)
 			{
 				DDraw_Draw_Surface(powerUpTextures[DETONATOR_TEX],
 						XOFFSET+(j<<5),YOFFSET+(i<<5),32,32,
-						lpddsback,1);
+						surface);
 			}
 			j++;					
 		}
@@ -528,7 +526,7 @@ int drawLevel()
 			{
 				char string[25];
 				sprintf(string,"%d",grid[i][j]>>27);
-				drawFont(&font,string,(j<<5)+XOFFSET+10,(i<<5)+YOFFSET+10);
+				drawFont(surface, &font,string,(j<<5)+XOFFSET+10,(i<<5)+YOFFSET+10);
 			}
 			j++;
 		}
@@ -697,7 +695,7 @@ int releasePowerUpTextures()
 	int i=0;
 	while(i<NUM_POWERUP_TEXTURES)
 	{
-		powerUpTextures[i]->Release();
+          SDL_FreeSurface(powerUpTextures[i]);
 		powerUpTextures[i]=NULL;
 		i++;
 	}
@@ -711,7 +709,7 @@ int releaseLevelTextures()
 	{
 		if(border[i])
 		{
-			border[i]->Release();
+                  SDL_FreeSurface(border[i]);
 			border[i]=NULL;
 		}
 		i++;
@@ -719,7 +717,7 @@ int releaseLevelTextures()
 	i=0;
 	while(i<NUM_LEVEL_TEXTURES)
 	{
-		levelTextures[i]->Release();
+          SDL_FreeSurface(levelTextures[i]);
 		levelTextures[i]=NULL;
 		i++;
 	}

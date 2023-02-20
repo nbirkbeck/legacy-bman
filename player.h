@@ -42,7 +42,7 @@ typedef struct PLAYER_TYPE
 	unsigned char ndeaths;
 	unsigned char nsuicides;
 	char name[24];
-	LPDIRECTDRAWSURFACE7 textures[21];
+	SDL_Surface* textures[21];
 	char nBombsInUse;
 	List bombsInUse;
 	void * brain;
@@ -59,7 +59,7 @@ int killPlayer(Player * player,Bomb *);
 int initPlayer(Player * player);
 Bomb * playerPlaceBomb(Player * player);
 int playerAltKey(Player * player);
-int loadPlayerTextures(Player * player, char * filename);
+int loadPlayerTextures(Player * player, const char * filename);
 int releasePlayerTextures(Player * player);
 int drawPlayer(Player * player);
 int drawScoreBoardPlayer(Player * player,int x, int y);

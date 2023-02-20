@@ -1,5 +1,6 @@
 #include "dxgl.h"
 #include "t3dlib3.h"
+#include <SDL2/SDL_surface.h>
 
 #ifndef FONT_H
 #define FONT_H
@@ -7,9 +8,9 @@
 
 typedef struct FONT_TYPE
 {
-	LPDIRECTDRAWSURFACE7  letter[96];
-	int width[96];
-	int point;
+  SDL_Surface*  letter[96];
+  int width[96];
+  int point;
 }Font;
 
 typedef struct MESSAGE_TYPE
@@ -19,17 +20,18 @@ typedef struct MESSAGE_TYPE
 	Font * font;
 }Message;
 
+
 int initMessages();
 int messagesShutdown();
-int drawMessages();
+int drawMessages(SDL_Surface* surface);
 int removeMessage(char * message);
 int addMessage(char * message, Font * font, int x, int y, int time);
 
 int getLength(Font * font, char * str);
 int releaseFont(Font * font);
-int loadFont(Font * font,char * str,int point);
-int drawFont(Font * font, char * str, int ,int);
-int drawFont(Font * font, char * str, int *,int *);
-int drawFontBound(Font * font, char * str, int ,int,int,int);
+int loadFont(Font * font, const char * str,int point);
+int drawFont(SDL_Surface*, Font * font, const char * str, int ,int);
+int drawFont(SDL_Surface*, Font * font, const char * str, int *,int *);
+int drawFontBound(SDL_Surface*, Font * font, const char * str, int ,int,int,int);
 
 #endif

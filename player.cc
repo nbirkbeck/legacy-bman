@@ -1,10 +1,11 @@
 #include "player.h"
 #include "font.h"
 #include "soundSyz.h"
+#include <SDL2/SDL_surface.h>
 
+extern SDL_Surface* surface;
 extern Font font;
 extern BITMAP_FILE bitFile;
-extern LPDIRECTDRAWSURFACE7 lpddsback;
 
 #define SCORE_BOARD_TEX 20
 #define DEFAULT_SPEED 2
@@ -279,37 +280,34 @@ int playerAltKey(Player * player)
 	return 0;
 }
 
-int loadPlayerTextures(Player * player, char * filename)
+int loadPlayerTextures(Player * player, const char * filename)
 {
-	int i,y;
-	LPDIRECTDRAWSURFACE7 temp;
-	
-	Load_Bitmap_File(&bitFile,filename);
-	temp = DDraw_Create_Surface(64,768,DDSCAPS_VIDEOMEMORY,0);
-	Scan_Image_Bitmap16(&bitFile,temp,0,0,64,768);
-	Unload_Bitmap_File(&bitFile);
+  int i = 0, y = 0;
+	SDL_Surface* temp = SDL_LoadBMP(filename);
 
-	i=0;
-	y=0;
 	while(i<12)
 	{
-		player->textures[i]= DDraw_Create_Surface(32,64,DDSCAPS_VIDEOMEMORY,0);
-		NDDraw_Draw_Surface(temp,0,y,32,64,player->textures[i],0);
+          player->textures[i]= SDL_CreateRGBSurface(0,32,64,32, 0,0,0,0);
+                SDL_Rect rect = {0, y, 32, 64};
+		SDL_BlitSurface(temp, &rect, player->textures[i], 0);
+                SDL_SetColorKey(player->textures[i], 1, 0);
 		y+=64;
 		i++;
 	}
 	y=0;
 	while(i<21)
 	{
-		player->textures[i]= DDraw_Create_Surface(32,64,DDSCAPS_VIDEOMEMORY,0);
-		NDDraw_Draw_Surface(temp,32,y,32,64,player->textures[i],0);
+          player->textures[i]= SDL_CreateRGBSurface(0,32,64,32, 0,0,0,0);
+                SDL_Rect rect = {32, y, 32, 64};
+		SDL_BlitSurface(temp, &rect, player->textures[i], 0);
+                SDL_SetColorKey(player->textures[i], 1, 0);
 		y+=64;
 		i++;
 
 	}
 	
 
-	temp->Release();
+	SDL_FreeSurface(temp);
 	return 1;
 }
 
@@ -321,7 +319,7 @@ int releasePlayerTextures(Player * player)
 	{
 		if(player->textures[i])
 		{
-			player->textures[i]->Release();
+                  SDL_FreeSurface(player->textures[i]);
 			player->textures[i]=NULL;
 		}
 		i++;
@@ -354,32 +352,32 @@ int drawPlayer(Player * player)
 	{
 		if(player->dir==UP)
 		{
-			DDraw_Draw_Surface(player->textures[0+frameOrder[player->frame]],player->x,player->y-32,32,64,lpddsback,1);
+			DDraw_Draw_Surface(player->textures[0+frameOrder[player->frame]],player->x,player->y-32,32,64,surface,1);
 		}
 		else if(player->dir==DOWN)
 		{
-			DDraw_Draw_Surface(player->textures[3+frameOrder[player->frame]],player->x,player->y-32,32,64,lpddsback,1);
+			DDraw_Draw_Surface(player->textures[3+frameOrder[player->frame]],player->x,player->y-32,32,64,surface,1);
 		}
 		else if(player->dir==LEFT)
 		{
-			DDraw_Draw_Surface(player->textures[6+frameOrder[player->frame]],player->x,player->y-32,32,64,lpddsback,1);
+			DDraw_Draw_Surface(player->textures[6+frameOrder[player->frame]],player->x,player->y-32,32,64,surface,1);
 		}
 		else if(player->dir==RIGHT)
 		{
-			DDraw_Draw_Surface(player->textures[9+frameOrder[player->frame]],player->x,player->y-32,32,64,lpddsback,1);
+			DDraw_Draw_Surface(player->textures[9+frameOrder[player->frame]],player->x,player->y-32,32,64,surface,1);
 		}
 		
 		char pos[300];
 		sprintf(pos,"%d/%d",player->nBombsInUse,player->nBombs);
-		drawFont(&font,pos,player->x-16,player->y);
+		drawFont(surface, &font,pos,player->x-16,player->y);
 		
 		return 1;
 	}
 	else
 	{
-		//DDraw_Draw_Surface(player->textures[deathFrameOrder[player->frame]],player->x,player->y-32,32,64,lpddsback,1);
+		//DDraw_Draw_Surface(player->textures[deathFrameOrder[player->frame]],player->x,player->y-32,32,64,surface,1);
 		DDraw_DrawSized_Surface(player->textures[deathFrameOrder[player->frame]],player->x-player->frame,player->y-32-player->frame,32,64,32+(player->frame<<1),
-																			64+(player->frame<<1),lpddsback,1);
+																			64+(player->frame<<1),surface,1);
 		player->frame++;
 		if(player->frame>=numDeathFrames)
 		{
@@ -392,6 +390,6 @@ int drawPlayer(Player * player)
 
 int drawScoreBoardPlayer(Player * p,int x, int y)
 {
-	DDraw_Draw_Surface(p->textures[SCORE_BOARD_TEX],x,y,32,64,lpddsback,1);
+	DDraw_Draw_Surface(p->textures[SCORE_BOARD_TEX],x,y,32,64,surface,1);
 	return 1;
 }

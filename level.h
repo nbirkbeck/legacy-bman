@@ -1,3 +1,4 @@
+#include <SDL2/SDL_surface.h>
 #include "dxgl.h"
 #include "t3dlib3.h"
 #include "globals.h"
@@ -52,13 +53,13 @@ Bomb * placeBomb(int,int i,int j);
 int pickupPowerUp(int i, int j);
 int unmaskGridSquare(int i, int j);
 int maskGridSquare(int i, int j,int bombIndex);
-int loadPowerUpTextures(char * filename);
+int loadPowerUpTextures(const char * filename);
 int createLevelTextures();
 int createBasicLevel(int nbombs,int nflames, int nkick, int ndet, int nspeed);
-int loadLevelTextures(char * filename);
-int loadLevel(char * filename);
+int loadLevelTextures(const char * filename);
+int loadLevel(const char * filename);
 int drawLevelTexture(int tNum,int x,int y);
-int drawLevelSmall(LPDIRECTDRAWSURFACE7 ,int x,int y);
+int drawLevelSmall(SDL_Surface*,int x,int y);
 int drawLevel();
 int levelKill(Bomb *,int,int);
 int levelKillPlayer(Bomb *,int,int);
