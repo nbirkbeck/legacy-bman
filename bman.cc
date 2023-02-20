@@ -548,7 +548,7 @@ int Game_Init()
   {
     int rendererFlags = SDL_RENDERER_SOFTWARE, windowFlags = 0;
     
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
     {
       printf("Couldn't initialize SDL: %s\n", SDL_GetError());
       exit(1);
@@ -573,7 +573,7 @@ int Game_Init()
       exit(1);
     }
   }
-  //MessageBox(main_window_handle,"Directx setup done","Where",MB_OK);
+
   while(i<96)
   {
     font.letter[i]=NULL;
@@ -582,6 +582,7 @@ int Game_Init()
     menuFont.letter[i]=NULL;
     i++;
   }
+  
   font.point=0;
   smallFont.point=0;
   menuFont.point=0;
@@ -643,11 +644,9 @@ int Game_Init()
   insert(&playerList,&players[1]);
   
   //MessageBox(main_window_handle,"Game Init Finished","Where",MB_OK);
-  consoleTexture = SDL_LoadBMP("./data/console.bmp");
+  consoleTexture = SDL_LoadBMP("data/console.bmp");
 
-#ifdef ENABLE_SOUND
   initSoundSyz();
-#endif
 
   //Init the commands
   {
@@ -825,6 +824,12 @@ int Game_Shutdown(void *parms, int num_parms)
 int HandleKeyPress(SDL_Keysym keysym) {
   int wparam = keysym.sym;
   std::cout << "text input:" << wparam << "\n";
+  const char* name = SDL_GetKeyName(keysym.sym);
+  if (keysym.mod & (KMOD_LSHIFT | KMOD_RSHIFT)) {
+    if (name && name[0] == ';')
+      wparam = ':';
+  }
+  std::cout << "'" << name << "'" << std::endl;
       if(console)
       {
         if(wparam=='~' || wparam=='`')
@@ -868,7 +873,7 @@ int HandleKeyPress(SDL_Keysym keysym) {
             //playMenuItemSound();
           }
         }
-        else if(wparam==SDLK_AC_BACK)
+        else if(wparam==SDLK_BACKSPACE)
         {
           stri--;
           if(stri<0)stri=0;

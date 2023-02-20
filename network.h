@@ -17,9 +17,11 @@
 #define UD_GAMETYPE 9
 #define UD_NAME 10
 
+#define UDP_PORT 8668
+
 int serverNameFunc(char*);
 
-int startServer(int gameType, int nplayers, char* name);
+int startServer(int gameType, int nplayers, const char* name);
 void networkStartup();
 
 int networkShutdown();
@@ -29,15 +31,15 @@ int stopClientThread();
 int disconnectFunc(char*);
 int connectFunc(char*);
 
-int connectToServer(char* ip, int port);
+int connectToServer(const char* ip, int port);
 
 int recvPlayerData(Socket* socket);
 int sendPlayerData(Socket* socket, int player);
-int sendChatClient(char* s);
+int sendChatClient(const char* s);
 
 void sendByte(int toSend);
-DWORD clientThread(LPVOID param);
-DWORD serverThread(LPVOID param);
-DWORD newServerThread(LPVOID param);
+void* clientThread(void* param);
+void* serverThread(void* param);
+void* newServerThread(void* param);
 Socket* serverStartup(unsigned short port);
 #endif

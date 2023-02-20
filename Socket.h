@@ -17,10 +17,10 @@ public:
   int recv(char* bytes, int len);
   int recvln(char* bytes, int len);
 
-  int send(char* bytes, int len);
-  int send(char* bytes, int len, int flags);
+  int send(const char* bytes, int len);
+  int send(const char* bytes, int len, int flags);
 
-  int connect(char* str, unsigned short port);
+  int connect(const char* str, unsigned short port);
 
   ~Socket();
   int sock;

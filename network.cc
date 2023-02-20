@@ -1,4 +1,3 @@
-
 #include "network.h"
 #include <string.h>
 #include <stdio.h>
@@ -9,7 +8,12 @@
 #include "list.h"
 #include "menu.h"
 #include "Socket.h"
-
+#include <unistd.h>
+#include <pthread.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <arpa/inet.h>
 
 extern unsigned int grid[GRID_HEIGHT][GRID_WIDTH];
 extern char curTextures[255];
@@ -19,29 +23,31 @@ extern Player players[4];
 extern Font font;
 extern int curClientNum;
 #define PACKET_SIZE 64
-#define UDP_PORT 667
 
-DWORD workerThread(LPVOID param);
+void *workerThread(void* param);
 
 
 int warn=1;
 /*
 	Server related variables
 */
-HANDLE serverHandle=NULL;
-DWORD dwServerThreadID;
 
 int netNumPlayers=0;
 int netMaxPlayers=0;
 char serverName[255];
-int serverSock=NULL;
+int serverSock=0;
 
-Socket * clientSockets[4];
+Socket * clientSockets[4] = {0, 0, 0, 0};
 Socket *  remoteSock=NULL;
 
-HANDLE clientHandle=NULL;
-DWORD dwClientThreadID;
+pthread_t clientHandle=0;
+pthread_t serverHandle=0;
+pthread_t workerHandle=0;
 
+int CreateThread(pthread_t* thread, const pthread_attr_t* attr, int unknown,
+                 void *(*start_routine) (void *), void* arg) {
+  return pthread_create(thread, attr, start_routine, arg);
+}
 
 
 int connectFunc(char * line)
@@ -51,7 +57,7 @@ int connectFunc(char * line)
 	int port;
 	resetGameState();
 	if(2==sscanf(line,"%s %s",command,ip))
-		connectToServer(ip,667);
+		connectToServer(ip,UDP_PORT);
 	else if(3==sscanf(line,"%s %s %d",command, ip ,&port))
 		connectToServer(ip,port);
 	else return 0;
@@ -61,8 +67,9 @@ int connectFunc(char * line)
 	return 1;
 }
 
-int connectToServer(char * ip,int port)
+int connectToServer(const char * ip,int port)
 {
+  std::cout << "Connecting to server:" << ip << " on " << port << std::endl;
 	char buffer[1024];
 	int cnum;
 	int rsofar=0;
@@ -79,12 +86,13 @@ int connectToServer(char * ip,int port)
 	setsockopt(remoteSock->sock,SOL_SOCKET, SO_SNDLOWAT,(char *)&option,sizeof(option));
 	option = 1;
 	setsockopt(remoteSock->sock,IPPROTO_TCP,TCP_NODELAY,(char *)&option,sizeof(option));
+        std::cout << "About to connect.\n";
 	if(!remoteSock->connect(ip,port)){
 		delete(remoteSock);
 		remoteSock=NULL;
 		return -1;
 	}
-
+        std::cout << "Done connecting.\n";
 	buffer[0]=NET_CONNECT;
 	if(remoteSock->send(buffer,1,0)!=1)
 	{
@@ -135,7 +143,7 @@ int connectToServer(char * ip,int port)
 	remoteSock->recv((char *)grid,len);
 
 	addSinglePlayer(cnum,1);
-	clientHandle=CreateThread(NULL,0,clientThread,NULL,0,&dwClientThreadID);
+	CreateThread(&clientHandle, NULL,0,clientThread,NULL);
 	curClientNum=cnum;
 
 	return cnum;
@@ -156,15 +164,16 @@ void sendByte(int toSend)
 
 	if(remoteSock->send(buffer,2,0)!=2)
 	{
-		MessageBox(NULL,"Sent different length than it should have","Client",MB_OK);
-		delete(remoteSock);
-		remoteSock=NULL;
+          std::cerr << "Client: Sent different length than it should have" << std::endl;
+          delete(remoteSock);
+          remoteSock=NULL;
 	}
 
 }
 
-DWORD clientThread(LPVOID param)
+void* clientThread(void* param)
 {
+  std::cout << "Starting client thread, remoteSock=" << remoteSock << std::endl;
 	char buffer[1024];
 	if(remoteSock==NULL)
 		return 0;
@@ -252,7 +261,7 @@ DWORD clientThread(LPVOID param)
 		Sleep(4);
 
 	}
-	
+        return 0;
 }
 
 int handleQuery(Socket * socket)
@@ -291,9 +300,9 @@ int serverNameFunc(char * line)
 	return 1;
 }
 
-int startServer(int gameType,int nplayers,char * name)
+int startServer(int gameType,int nplayers,const char * name)
 {
-	int port=667;
+	int port=UDP_PORT;
 	netMaxPlayers=nplayers;
 	sprintf(serverName,name);
 
@@ -301,53 +310,56 @@ int startServer(int gameType,int nplayers,char * name)
 		Start the thread, if it is running, kill it, and then
 		start up a fresh one
 	*/
-	memset(clientSockets,0,sizeof(int)*4);
+	memset(clientSockets,0,sizeof(clientSockets[0])*4);
 
 	stopServerThread();
 
-	serverHandle=CreateThread(NULL,0,newServerThread,&port,0,&dwServerThreadID);
+	CreateThread(&serverHandle,NULL,0,newServerThread,&port);
 	Sleep(1000);
-	connectToServer("127.0.0.1",667);
+	connectToServer("127.0.0.1",UDP_PORT);
 	return 1;
 }
 
-DWORD WINAPI newServerThread(LPVOID param)
+void* newServerThread(void* param)
 {
+  std::cout << "Starting new server thread\n";
 	Socket server;
-	server.bind(667);
+	server.bind(UDP_PORT);
 	server.listen(10);
 
 	int option=1;
 	setsockopt(server.sock,SOL_SOCKET, SO_REUSEADDR,(char *)&option,sizeof(option));
 
 	struct sockaddr_in clientAddr;
-	int cliAddrLen;
+	socklen_t cliAddrLen;
 	int size;
 	char buffer[PACKET_SIZE];
 	char string[255];
 
 	int move;
-	int clientSock=NULL;
+	int clientSock=0;
 	cliAddrLen = sizeof(clientAddr);
 
 	netNumPlayers=0;
 	
 	while(1)
 	{
+          std::cout << "Waiting in server loop.\n";
 		Socket * clientSock;
 		if((clientSock = server.accept())==NULL)
-			MessageBox(NULL,"Error accepting","Socket",MB_OK);
-		
-
+                  std::cerr << "Socket: Error accepting" << std::endl;
+                
+                std::cout << "Accepted client.\n";
 		if((size = clientSock->recv(buffer,1))<0)
 		{
-			MessageBox(NULL,"Recieve failed","Socket",MB_OK);
+                  std::cerr << "Socket:Recieve failed"  << std::endl;
 		}
 		/*
 			The first byte can only be one of the following two
 			otherwise it is considererd nonsense, and the client
 			is kicked
 		*/
+                std::cout << "Received byte.\n";
 		if(buffer[0]==NET_CONNECT)
 		{
 			/* there is room for the client */
@@ -412,7 +424,7 @@ DWORD WINAPI newServerThread(LPVOID param)
 						i++;
 					}
 					
-					CreateThread(NULL,0,workerThread,(void *)param,0,&dwID);
+					CreateThread(&workerHandle, NULL,0,workerThread,(void *)param);
 				}
 				netNumPlayers++;
 			}
@@ -430,7 +442,7 @@ DWORD WINAPI newServerThread(LPVOID param)
 		{
 			sockaddr_in address;
 			char * warning=NULL;
-			int len;
+			socklen_t len;
 			handleQuery(clientSock);
 			len = sizeof(address);
 			getpeername(clientSock->sock,(sockaddr *)&address,&len);
@@ -453,7 +465,7 @@ DWORD WINAPI newServerThread(LPVOID param)
 		}
 		*/
 	}
-	return 1;
+	return (void*)1;
 }
 
 /*
@@ -461,7 +473,7 @@ DWORD WINAPI newServerThread(LPVOID param)
 	post: chat is sent from the client to the server, iff the client
 	is connected to the server
 */
-int sendChatClient(char * s)
+int sendChatClient(const char * s)
 {
 	char c[3];
 	if(remoteSock==NULL)
@@ -529,7 +541,7 @@ int recvPlayerData(Socket * socket)
 	return c;
 }
 
-DWORD workerThread(LPVOID param)
+void* workerThread(void* param)
 {
 	int cnum=*((int *)param);
 	Socket * sock;
@@ -588,6 +600,7 @@ DWORD workerThread(LPVOID param)
 				{
 					if(i!=cnum)
 					{
+                                          if (clientSockets[i])
 						clientSockets[i]->send(buffer,2,0);
 					}
 					i++;
@@ -647,7 +660,7 @@ shutdown_:
 
 	netNumPlayers--;
 
-	return 1;
+	return (void*)1;
 }
 
 Socket * serverStartup(unsigned short port)
@@ -672,12 +685,12 @@ int stopServerThread()
 	if(serverSock)
 	{
 		close(serverSock);
-		serverSock=NULL;
+		serverSock=0;
 	}
 	if(serverHandle)
 	{
-		CloseHandle(serverHandle);
-		serverHandle=NULL;
+          pthread_join(serverHandle, nullptr);
+          serverHandle=0;
 	}
 
 	return 1;
@@ -691,8 +704,8 @@ int stopClientThread()
 		remoteSock=0;
 	}
 	if(clientHandle)
-		CloseHandle(clientHandle);
-	clientHandle=NULL;
+          pthread_join(clientHandle, nullptr);
+	clientHandle=0;
 	
 	return 1;
 }
@@ -708,20 +721,22 @@ int networkShutdown()
 {
 	stopClientThread();
 	stopServerThread();
+#ifdef _WIN32
 	WSACleanup();
+#endif
 	return 1;
 }
 
 
 
-DWORD WINAPI serverThread(LPVOID param)
+void* serverThread(void* param)
 {
 
 	struct sockaddr_in serverAddr;
 	int sock;
-	int port=667;
+	int port=UDP_PORT;
 	if((sock = socket(PF_INET,SOCK_DGRAM,IPPROTO_UDP))<0)
-		MessageBox(NULL,"Failed to create server socket","Socket",MB_OK);
+          std::cerr << "Socket:Failed to create server socket\n";
 
 	memset(&serverAddr,0,sizeof(sockaddr_in));
 	serverAddr.sin_family=AF_INET;
@@ -729,10 +744,10 @@ DWORD WINAPI serverThread(LPVOID param)
 	serverAddr.sin_addr.s_addr=htonl(INADDR_ANY);
 
 	if(bind(sock,(struct sockaddr *)&serverAddr,sizeof(sockaddr_in))<0)
-		MessageBox(NULL,"Binding server socket failed","Socket",MB_OK);
+          std::cerr << "Socket:Binding server socket failed.\n";
 
 	struct sockaddr_in clientAddr;
-	int cliAddrLen;
+	socklen_t cliAddrLen;
 	int size;
 	char buffer[PACKET_SIZE];
 	char string[255];
@@ -750,7 +765,7 @@ DWORD WINAPI serverThread(LPVOID param)
 		cliAddrLen = sizeof(clientAddr);
 		
 		if((size = recvfrom(sock,buffer,PACKET_SIZE,0,(struct sockaddr *) &clientAddr,&cliAddrLen))<0)
-			MessageBox(NULL,"Failed to receive","Socket",MB_OK);
+                  std::cerr << "Socket::failed to receive\n";
 		
 		clientNum=buffer[0];
 		memcpy(&x,buffer+1,2);
@@ -809,5 +824,5 @@ DWORD WINAPI serverThread(LPVOID param)
 		//size = sendto(sock,buffer,PACKET_SIZE,0,(struct sockaddr *) &clientAddr,sizeof(clientAddr));
 		//Sleep(1500);
 	}
-	return 1;
+	return (void*)1;
 }

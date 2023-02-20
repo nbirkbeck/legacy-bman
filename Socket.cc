@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <arpa/inet.h>
+#include <iostream>
 
 static int count=0;
 
@@ -61,8 +62,10 @@ int Socket::bind(unsigned short port)
 	sin.sin_addr.s_addr=htonl(INADDR_ANY);
 	sin.sin_port=htons(port);
 
-	if(::bind(sock,(sockaddr *)&sin,sizeof(sin))<0)
-		return 0;
+	if(::bind(sock,(sockaddr *)&sin,sizeof(sin))<0) {
+          std::cerr << "Binding failed!\n";
+          return 0;
+        }
 
 	return 1;
 }
@@ -85,7 +88,7 @@ Socket * Socket::accept()
 	return client;
 }
 
-int Socket::connect(char * str, unsigned short port)
+int Socket::connect(const char * str, unsigned short port)
 {
 	struct sockaddr_in sin;
 	memset(&sin,0,sizeof(sin));
@@ -99,7 +102,7 @@ int Socket::connect(char * str, unsigned short port)
 	return 1;
 }
 
-int Socket::send(char * bytes,int len)
+int Socket::send(const char * bytes,int len)
 {
 	int sent;
 	if((sent=::send(sock,bytes,len,0))!=len){
@@ -108,7 +111,7 @@ int Socket::send(char * bytes,int len)
 	return sent;
 }
 
-int Socket::send(char * bytes,int len,int flags)
+int Socket::send(const char * bytes,int len,int flags)
 {
 	int sent;
 	if((sent=::send(sock,bytes,len,0))!=len){

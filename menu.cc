@@ -240,7 +240,7 @@ int drawLevelSelect()
 	if(numLevels==-1)
 	{
 		WIN32_FIND_DATA ffd;
-		FILE * file = fopen("./data/level/maplist.txt","r");
+		FILE * file = fopen("data/level/maplist.txt","r");
 		numLevels=0;
 		if(file!=NULL)
 		{
@@ -694,7 +694,7 @@ int drawMultiPlayerClientMenu()
 		{
 		case 0:
 			resetGameState();
-			connectToServer(input,667);
+			connectToServer(input,UDP_PORT);
 			gotoGameMain();
 			break;
 
