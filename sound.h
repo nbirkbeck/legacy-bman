@@ -1,6 +1,6 @@
 
 #ifndef NBSOUND_H
-#define NBSOUN_H
+#define NBSOUND_H
 
 int playBombSound();
 int loadSounds();

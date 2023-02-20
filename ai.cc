@@ -180,7 +180,7 @@ int canHide(int i,int j, int prefferedDir)
 	return nsteps[leasti];
 }
 
-int AIPlayerTalk(Player * player, char * message)
+int AIPlayerTalk(Player * player, const char * message)
 {
 	char * str;
 	str = (char *)malloc(strlen(message)+1);

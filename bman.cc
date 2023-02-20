@@ -18,6 +18,10 @@
 #include <cassert>
 #include <unordered_map>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 void* networkHandles[4];
 
 SDL_Surface* consoleTexture;
@@ -60,8 +64,8 @@ Brain brains[4];
 
 int curClientNum=0;
 
-bool g_drawTime=false;
-bool g_drawFPS=true;
+int g_drawTime=false;
+int g_drawFPS=true;
 int shadeType=1;
 
 typedef struct COMMAND_TYPE
@@ -121,7 +125,7 @@ int nameFunc(char * line)
 	char * c;
 	if((c=strchr(line,' '))!=NULL)
 	{
-		sprintf(players[curClientNum].name,c+1);
+          sprintf(players[curClientNum].name, "%s", c+1);
 	}
 	return 1;
 }
@@ -465,7 +469,6 @@ int Game_Main()
 
   SDL_FillRect(surface, nullptr, 0);
 
-  std::cout << "Drawing main\n";
   drawLevel();
 
   drawPlayers();
@@ -503,7 +506,8 @@ int main(int ac, char* av[]) {
   ltime = GetTickCount();
   while (true) {
     surface = SDL_GetWindowSurface(window);
-
+    //SDL_LockSurface(surface);
+    
     dtime=GetTickCount()-ltime;
     ltime=GetTickCount();
     myTimer.start();
@@ -517,7 +521,9 @@ int main(int ac, char* av[]) {
     {
       myTimer.wait(1000);
     }
-    //SDL_RenderPresent(renderer);
+
+    //SDL_UnlockSurface(surface);
+    SDL_UpdateWindowSurface(window);
   }
   
   Game_Shutdown();
@@ -582,15 +588,15 @@ int Game_Init()
   menuFontGlo.point=0;
 
   std::cerr << "Loading fonts\n";
-  loadFont(&font,"./fonts/font",12);
-  loadFont(&smallFont,"./fonts/font_small",8);
+  loadFont(&font,"fonts/font",12);
+  loadFont(&smallFont,"fonts/font_small",8);
   //	loadFont(&menuFont,".fonts/font30_2",30); 
   //	loadFont(&menuFontGlo,".fonts/font30_2_glo",30);
   loadBombTextures();
-  loadPowerUpTextures("./data/powerup.bmp");
+  loadPowerUpTextures("data/powerup.bmp");
   createLevelTextures();
-  loadLevelTextures("./data/level/back.bmp");
-  loadLevel("./data/level/basic level");
+  loadLevelTextures("data/level/back.bmp");
+  loadLevel("data/level/basic level");
   i=0;
 	
 
@@ -600,13 +606,13 @@ int Game_Init()
 
   std::cout << "Loading players\n";
   initPlayer(&players[0]);
-  loadPlayerTextures(&players[0],"./data/man1.bmp");
+  loadPlayerTextures(&players[0],"data/man1.bmp");
   initPlayer(&players[1]);
-  loadPlayerTextures(&players[1],"./data/man2.bmp");
+  loadPlayerTextures(&players[1],"data/man2.bmp");
   initPlayer(&players[2]);
-  loadPlayerTextures(&players[2],"./data/man3.bmp");
+  loadPlayerTextures(&players[2],"data/man3.bmp");
   initPlayer(&players[3]);
-  loadPlayerTextures(&players[3],"./data/man4.bmp");
+  loadPlayerTextures(&players[3],"data/man4.bmp");
 
   players[0].clientNum=0;
   players[1].clientNum=1;
@@ -680,6 +686,8 @@ int Game_Init()
     commands[10].func=shadeTypeFunc;
   }
   keyHandler=MenuKeyHandler;
+
+  std::cout << "Done init\n";
   return 0;
 }
 
@@ -949,8 +957,6 @@ int HandleInput() {
   case SDL_KEYDOWN:
     {
       SDL_Keysym keysym = event.key.keysym; 
-      if(console)
-        return 1;
       std::cout << "Keyboard:" << (char)keysym.sym << "\n";
       if (!keys[keysym.sym]) {
         HandleKeyPress(keysym);

@@ -113,7 +113,7 @@ int loadLevelTextures(const char * filename)
 {
 	int i = 0, x = 0;
 
-	sprintf(curTextures,filename);
+	sprintf(curTextures, "%s", filename);
 	
 	SDL_Surface* temp = SDL_LoadBMP(filename);
 

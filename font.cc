@@ -227,7 +227,7 @@ int drawMessages(SDL_Surface* surface)
 	return 1;
 }
 
-int getLength(Font * font, char * str)
+int getLength(Font * font, const char * str)
 {
 	int i=0;
 	int len=0;

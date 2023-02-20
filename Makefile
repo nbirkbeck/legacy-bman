@@ -9,3 +9,6 @@ all: bman ${OBJS}
 
 bman: ${OBJS}
 	g++ ${FLAGS} -o $@ ${OBJS} -lSDL2
+
+bman.html:
+	emcc -O2 -o bman.html -sASYNCIFY -sSDL2_IMAGE_FORMATS='["bmp"]' -s USE_SDL_IMAGE=2 -sUSE_SDL=2 --embed-file fonts --embed-file data  bman.cc level.cc bomb.cc font.cc ai.cc queue.cc BFSearch.cc list.cc player.cc compat.cc sound_dummy.cc menu.cc
