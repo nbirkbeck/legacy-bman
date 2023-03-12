@@ -9,7 +9,6 @@
 char curTextures[255];
 
 extern SDL_Surface* surface;
-extern BITMAP_FILE bitFile;
 extern Font font;
 extern FILE * debug;
 

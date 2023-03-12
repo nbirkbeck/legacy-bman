@@ -5,8 +5,6 @@
 #include <SDL2/SDL_surface.h>
 #include <SDL2/SDL.h>
 
-extern BITMAP_FILE bitFile;
-extern LPDIRECTDRAWSURFACE7 lpddsback;
 extern FILE * debug;
 extern int shadeType;
 

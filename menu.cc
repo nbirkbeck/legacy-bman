@@ -3,7 +3,6 @@
 #include "globals.h"
 #include "network.h"
 #include "level.h"
-#include "t3dlib3.h"
 #include "soundSyz.h"
 #include <SDL2/SDL.h>
 #include <unordered_map>
@@ -239,7 +238,6 @@ int drawLevelSelect()
 
 	if(numLevels==-1)
 	{
-		WIN32_FIND_DATA ffd;
 		FILE * file = fopen("data/level/maplist.txt","r");
 		numLevels=0;
 		if(file!=NULL)

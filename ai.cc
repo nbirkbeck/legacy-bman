@@ -1,5 +1,6 @@
 #include "ai.h"
 #include "BFSearch.h"
+#include "compat.h"
 #include "font.h"
 
 //#define DRAW_UTILITY

@@ -30,6 +30,10 @@
 #define CHAT_X 32
 #define CHAT_Y 466
 
+#define SCREEN_WIDTH 640  // 96//640 // size of screen
+#define SCREEN_HEIGHT 480 // 160//480
+#define SCREEN_BPP 16     // bits per pixel
+
 int resetGameState();
 int addSinglePlayer(int num, int type);
 int removePlayer(int num);

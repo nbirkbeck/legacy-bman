@@ -1,6 +1,4 @@
-#include "dxgl.h"
 #include "globals.h"
-#include "t3dlib3.h"
 
 #ifndef BOMB_H
 #define BOMB_H

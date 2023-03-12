@@ -1,4 +1,5 @@
 #include "bomb.h"
+#include "compat.h"
 #include "player.h"
 #include "level.h"
 #include "soundSyz.h"

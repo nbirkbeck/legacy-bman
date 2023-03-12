@@ -15,6 +15,8 @@
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 
+#include <iostream>
+
 extern unsigned int grid[GRID_HEIGHT][GRID_WIDTH];
 extern char curTextures[255];
 

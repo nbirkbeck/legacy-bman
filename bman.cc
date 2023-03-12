@@ -1,7 +1,5 @@
 #include "compat.h"
 #include "MyTimer.h"
-#include "dxgl.h"
-#include "t3dlib3.h"
 #include <time.h>
 #include "menu.h"
 #include "font.h"
@@ -17,6 +15,7 @@
 #include <SDL2/SDL.h>
 #include <cassert>
 #include <unordered_map>
+#include <iostream>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -53,7 +52,6 @@ Font font;
 Font smallFont;
 Font menuFont,menuFontGlo;
 
-BITMAP_FILE bitFile;
 int (* Game_Main_Func)(void);
 int (* keyHandler)(int) =NULL;
 int menuMidi;

@@ -1,8 +1,6 @@
 #include "bomb.h"
-#include "dxgl.h"
 #include "globals.h"
 #include "list.h"
-#include "t3dlib3.h"
 #include <SDL2/SDL_surface.h>
 
 #ifndef LEVEL_H

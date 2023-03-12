@@ -1,11 +1,11 @@
 #include "player.h"
+#include "compat.h"
 #include "font.h"
 #include "soundSyz.h"
 #include <SDL2/SDL_surface.h>
 
 extern SDL_Surface* surface;
 extern Font font;
-extern BITMAP_FILE bitFile;
 
 #define SCORE_BOARD_TEX 20
 #define DEFAULT_SPEED 2

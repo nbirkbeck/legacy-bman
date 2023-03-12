@@ -1,5 +1,3 @@
-#include "dxgl.h"
-#include "t3dlib3.h"
 #include <SDL2/SDL_surface.h>
 
 #ifndef FONT_H

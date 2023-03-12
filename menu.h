@@ -3,9 +3,7 @@
 #define MENU_H
 
 #include "MyTimer.h"
-#include "dxgl.h"
 #include "font.h"
-#include "t3dlib3.h"
 
 int MenuKeyHandler(int wparam);
 int Game_Menu();
